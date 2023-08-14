@@ -44,11 +44,11 @@ class TreePlotterBase(abc.ABC, TrackPropertyMixin):
         Plot the tree.
         """
         self.clear()
-        subgraph_nodes = build_subgraph(self.tracks, self.track_id)
-        self.draw_from_nodes(subgraph_nodes, self.track_id)
+        subgraph_nodes, n_roots = build_subgraph(self.tracks, self.track_id)
+        self.draw_from_nodes(subgraph_nodes, n_roots, self.track_id)
 
-    def draw_from_nodes(self, tree_nodes: list[TreeNode], track_id: int | None = None):
-        self.edges, self.annotations = layout_tree(tree_nodes)
+    def draw_from_nodes(self, tree_nodes: list[TreeNode], n_roots, track_id: int | None = None):
+        self.edges, self.annotations = layout_tree(tree_nodes, n_roots)
 
         if self.has_tracks:
             self.update_edge_colors(update_live=False)

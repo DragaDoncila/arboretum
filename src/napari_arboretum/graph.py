@@ -120,12 +120,22 @@ def get_root_id(layer: napari.layers.Tracks, search_node: int) -> int:
     """
     roots, reverse_graph = build_reverse_graph(layer.graph)
     linear_trees = [linearise_tree(reverse_graph, root) for root in roots]
-
-    root_id = search_node
-    for root, tree in zip(roots, linear_trees):
+    root_dict = dict(zip(roots, linear_trees))
+    root_id = []
+    # it's not enough for the search_node to be in the tree - we need to find 
+    # all roots that have a valid path to search_node
+    for root, tree in root_dict.items():
         if search_node in tree:
-            root_id = root
+            root_id.append(root)
 
+    other_roots = []
+    for root in root_id:
+        for node in root_dict[root]:
+            for pot_root, root_nodes in root_dict.items():
+                if node in root_nodes and pot_root not in root_id and pot_root not in other_roots:
+                    other_roots.append(pot_root)
+    root_id += other_roots
+    
     return root_id
 
 
@@ -164,10 +174,10 @@ def build_subgraph(layer: napari.layers.Tracks, search_node: int) -> list[TreeNo
         return node
 
     # now build the treenode objects
-    nodes = [_node_from_graph(root_id)]
-    marked = [root_id]
+    nodes = [_node_from_graph(r_id) for r_id in root_id]
+    marked = [root_id[0]]
 
-    queue = [nodes[0]]
+    queue = [*nodes]
 
     # breadth first search
     while queue:
@@ -180,4 +190,4 @@ def build_subgraph(layer: napari.layers.Tracks, search_node: int) -> list[TreeNo
                 queue.append(child_node)
                 nodes.append(child_node)
 
-    return nodes
+    return nodes, len(root_id)

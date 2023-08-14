@@ -17,7 +17,7 @@ from napari_arboretum.graph import TreeNode
 WHITE = np.array([1.0, 1.0, 1.0, 1.0])
 
 # minimum number of output edges to be considered a branching point
-MIN_OUT_EDGES = 2
+MIN_OUT_EDGES = 1
 
 # napari specifies colours as a RGBA tuple in the range [0, 1], so mirror
 # that convention throughout arboretum.
@@ -42,20 +42,23 @@ class Edge:
 
 
 def _find_merges(nodes: list[TreeNode]) -> dict[int, list[Any]]:
+    # list of all children's node IDs
     node_ids = itertools.chain(*[n.children for n in nodes])
+    # count all the children that occur more than once. If 2+ nodes have the same child, then it's a merge
     merges = [n for n, count in Counter(node_ids).items() if count > 1]
+    #TODO: this might need to be >= 1 to allow for merges immediately split I think?
     parents = [n for n in nodes if len(n.children) == 1]
 
     parent_merges: dict[int, list[TreeNode]] = {m: [] for m in merges}
 
     for merge in merges:
-        parent_id = [p for p in parents if p.children[0] == merge]
+        parent_id = [p for p in parents if merge in p.children]
         parent_merges[merge] += parent_id
 
     return parent_merges
 
 
-def layout_tree(nodes: list[TreeNode]) -> tuple[list[Edge], list[Annotation]]:
+def layout_tree(nodes: list[TreeNode], n_roots) -> tuple[list[Edge], list[Annotation]]:
     """Build and layout the edges of a lineage tree, given the graph nodes.
 
     Parameters
@@ -71,12 +74,12 @@ def layout_tree(nodes: list[TreeNode]) -> tuple[list[Edge], list[Annotation]]:
         A list of annotations to be added to the graph.
     """
     # put the start vertex into the queue, and the marked list
-    root = nodes[0]
+    root = nodes[:n_roots]
+    leaves = [node for node in nodes if node.is_leaf]
 
-    queue = [root]
-    marked = [root]
-    y_pos = [0.0]
-
+    queue = root
+    marked = [root[0]]
+    y_pos = list(np.linspace(0, len(leaves), n_roots))
     # store the line coordinates that need to be plotted
     edges: list[Edge] = []
     annotations: list[Annotation] = []
@@ -123,7 +126,7 @@ def layout_tree(nodes: list[TreeNode]) -> tuple[list[Edge], list[Annotation]]:
                 marked.append(child)
                 queue.append(child)
 
-                y_pos.append(y + y_mod[idx])
+                y_pos.append(y + (y_mod[0] if len(y_mod) < idx+1 else y_mod[idx]))
 
                 # if it's a leaf don't plot the annotation
                 if not child.is_leaf:
