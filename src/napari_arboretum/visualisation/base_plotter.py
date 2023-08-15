@@ -74,9 +74,12 @@ class TreePlotterBase(abc.ABC, TrackPropertyMixin):
         """
         for e in self.edges:
             if e.track_id is not None:
-                e.color = self.tracks.track_colors[
-                    self.tracks.properties["track_id"] == e.track_id
-                ]
+                if 'colors' in self.tracks.metadata:
+                    e.color = self.tracks.metadata['colors'][e.track_id]
+                else:
+                    e.color = self.tracks.track_colors[
+                        self.tracks.properties["track_id"] == e.track_id
+                    ]
 
         if update_live:
             self.update_colors()
