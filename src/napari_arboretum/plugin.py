@@ -18,7 +18,6 @@ from napari_arboretum.visualisation.vispy_plotter import VisPyPlotter
 
 GUI_MAXIMUM_WIDTH = 500
 
-
 class Arboretum(QWidget, TrackPropertyMixin):
     """
     Tree viewer widget.
@@ -94,6 +93,17 @@ class Arboretum(QWidget, TrackPropertyMixin):
                 layer.events.color_by.connect(self.property_plotter.plot_property)
 
         self.tracks_layers = layers
+        
+    def show_tree(self, tracks: Tracks, event: Event) -> None:
+        self.tracks = tracks
+
+        cursor_position = event.position
+        track_id = tracks.get_value(cursor_position, world=True)
+        if track_id is not None:
+            # Setting this property automatically triggers re-drawing of the
+            # tree and property graph
+            self.track_id = track_id
+            self.draw_current_time_line()
 
     def append_mouse_callback(self, track_layer: Tracks) -> None:
         """
@@ -101,17 +111,8 @@ class Arboretum(QWidget, TrackPropertyMixin):
         when the layer is clicked.
         """
 
-        @track_layer.mouse_double_click_callbacks.append
-        def show_tree(tracks: Tracks, event: Event) -> None:
-            self.tracks = tracks
+        track_layer.mouse_double_click_callbacks.append(self.show_tree)
 
-            cursor_position = event.position
-            track_id = tracks.get_value(cursor_position, world=True)
-            if track_id is not None:
-                # Setting this property automatically triggers re-drawing of the
-                # tree and property graph
-                self.track_id = track_id
-                self.draw_current_time_line()
 
     def draw_current_time_line(self, event: Event | None = None) -> None:
         if not self.plotter.has_tracks:
