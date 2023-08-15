@@ -47,7 +47,7 @@ def _find_merges(nodes: list[TreeNode]) -> dict[int, list[Any]]:
     # count all the children that occur more than once. If 2+ nodes have the same child, then it's a merge
     merges = [n for n, count in Counter(node_ids).items() if count > 1]
     #TODO: this might need to be >= 1 to allow for merges immediately split I think?
-    parents = [n for n in nodes if len(n.children) == 1]
+    parents = [n for n in nodes if len(n.children) >= 1]
 
     parent_merges: dict[int, list[TreeNode]] = {m: [] for m in merges}
 

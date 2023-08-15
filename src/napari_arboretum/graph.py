@@ -127,7 +127,7 @@ def get_root_id(layer: napari.layers.Tracks, search_node: int) -> int:
     for root, tree in root_dict.items():
         if search_node in tree:
             root_id.append(root)
-
+    
     other_roots = []
     for root in root_id:
         for node in root_dict[root]:
@@ -136,6 +136,8 @@ def get_root_id(layer: napari.layers.Tracks, search_node: int) -> int:
                     other_roots.append(pot_root)
     root_id += other_roots
     
+    if not root_id:
+        root_id = [search_node]
     return root_id
 
 
