@@ -47,11 +47,15 @@ class Arboretum(QWidget, TrackPropertyMixin):
         row = 2
         self.export_button = QPushButton("Export tree as SVG")
         layout.addWidget(self.export_button, row, col)
-        # Add property plotter
+        # Add toggle property plotter button
         row = 3
+        self.toggle_prop_plotter_button = QPushButton("Toggle property plotter")
+        layout.addWidget(self.toggle_prop_plotter_button, row, col)
+        # Add property plotter
+        row = 4
         layout.addWidget(self.property_plotter.get_qwidget(), row, col)
         # Make the tree plot a bigger than the property plot
-        for row, stretch in zip([1, 2, 3], [4, 1, 2]):
+        for row, stretch in zip([1, 2, 3, 4], [4, 1, 1, 2]):
             layout.setRowStretch(row, stretch)
         self.setLayout(layout)
 
@@ -60,6 +64,8 @@ class Arboretum(QWidget, TrackPropertyMixin):
         self.viewer.layers.events.changed.connect(self.update_tracks_layers)
         # Update the horizontal time line if the current z-step changes
         self.viewer.dims.events.current_step.connect(self.draw_current_time_line)
+        # show/hide property plotter
+        self.toggle_prop_plotter_button.clicked.connect(self.toggle_prop_plotter)
         # Save the tree as an SVG
         self.export_button.clicked.connect(self.export_tree)
 
@@ -120,6 +126,15 @@ class Arboretum(QWidget, TrackPropertyMixin):
         z_value = self.viewer.dims.current_step[0]
         self.plotter.draw_current_time_line(z_value)
         self.property_plotter.draw_current_time_line(z_value)
+    
+    def toggle_prop_plotter(self, event):
+        widg = self.property_plotter.get_qwidget()
+        if widg.isVisible():
+            widg.hide()
+            self.layout().setRowStretch(4, 0)
+        else:
+            widg.show()
+            self.layout().setRowStretch(4, 2)
 
     def export_tree(self) -> None:
         """Export the tree as an SVG."""
