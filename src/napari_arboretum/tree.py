@@ -115,7 +115,9 @@ def layout_tree(nodes: list[TreeNode], n_roots) -> tuple[list[Edge], list[Annota
         children = [t for t in nodes if t.ID in node.children]
 
         # calculate the depth modifier
-        depth_mod = max_depth_mod / (2.0 ** (node.generation))
+        # this doesn't work because we clash on generations..
+        # depth_mod = (max_depth_mod / (2.0 ** (node.generation // 2 + node.generation % 2))) * 0.5
+        depth_mod = max_depth_mod / (2.0 ** node.generation)
         spacing = np.linspace(-depth_mod, depth_mod, len(children))
         y_mod = spacing if len(children) > 1 else np.array([0.0])
 

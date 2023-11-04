@@ -38,6 +38,10 @@ class TreePlotterBase(abc.ABC, TrackPropertyMixin):
     @property
     def has_tracks(self) -> bool:
         return hasattr(self, "_tracks")
+    
+    @property
+    def has_plot(self) -> bool:
+        return hasattr(self, '_current_nodes')
 
     def draw_tree(self) -> None:
         """
@@ -61,6 +65,7 @@ class TreePlotterBase(abc.ABC, TrackPropertyMixin):
             self.add_annotation(a)
 
         self.draw_tree_visual()
+        self._current_nodes = tree_nodes
 
     def update_edge_colors(self, *, update_live: bool = True) -> None:
         """
